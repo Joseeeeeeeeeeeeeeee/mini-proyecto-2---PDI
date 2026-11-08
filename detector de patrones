@@ -1,0 +1,41 @@
+from pathlib import Path
+import cv2 as cv
+import numpy as np
+import matplotlib.pyplot as plt
+
+ASSETS = Path("mini-proyecto-2---PDI")
+
+def cargar(nombre, gris=False):
+    modo = cv.IMREAD_GRAYSCALE if gris else cv.IMREAD_COLOR
+    img = cv.imread(str(ASSETS / nombre), modo)
+    if img is None:
+        raise FileNotFoundError(f"No se pudo leer {ASSETS / nombre}")
+    return img
+
+def mostrar(imagen, titulo="Resultado", cmap="gray"):
+    plt.figure(figsize=(8, 5))
+    if imagen.ndim == 2:
+        plt.imshow(imagen, cmap=cmap)
+    else:
+        plt.imshow(cv.cvtColor(imagen, cv.COLOR_BGR2RGB))
+    plt.title(titulo)
+    plt.axis("off")
+    plt.show()
+
+lucario = cargar("lucario_original.png")
+mostrar(lucario, "Lucario")
+
+gris = cv.cvtColor(lucario, cv.COLOR_BGR2GRAY)
+plantilla = cargar("lucario_plantilla_ojo-1.png", gris=True)
+respuesta = cv.matchTemplate(gris, plantilla, cv.TM_CCOEFF_NORMED)
+_, valor_maximo, _, posicion = cv.minMaxLoc(respuesta)
+h, w = plantilla.shape
+salida = lucario.copy()
+cv.rectangle(salida, posicion,
+             (posicion[0] + w, posicion[1] + h),
+             (0, 255, 255), 3)
+mostrar(salida, f"Coincidencia máxima = {valor_maximo:.3f}")
+plt.imshow(respuesta, cmap="inferno")
+plt.colorbar(label="Semejanza normalizada")
+plt.title("Mapa de coincidencia")
+plt.show()

@@ -5,7 +5,10 @@ import glob
 from pathlib import Path
 from skimage.feature import graycomatrix, local_binary_pattern
 from skimage.feature import graycoprops
-
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score, classification_report
+from sklearn.decomposition import PCA
 
 # Rutas del proyecto
 ruta_base = Path(__file__).resolve().parent
@@ -1329,3 +1332,91 @@ if mostrar_vectores:
 
     for clase, vector in zip(etiquetas, vectores):
         print(f"{clase}: {len(vector)} caracteristicas")
+
+#---------------------- Problema 1.3 -------------------------------------
+#---------------------- Problema 1.3 -------------------------------------
+
+def estrategia_A(X_train, X_test, y_train, y_test):
+    # Instanciar el clasificador común (Random Forest)
+    clasificador = RandomForestClassifier(random_state=42)
+    
+    # Entrenar con los datos aplanados
+    clasificador.fit(X_train, y_train)
+    
+    # Predecir y evaluar
+    yp = clasificador.predict(X_test)
+    acc = accuracy_score(y_test, yp)
+    print('Estrategia A (Flatten):', acc)
+    return clasificador, acc
+
+def estrategia_B(X_train, X_test, y_train, y_test):
+    # Aplicar PCA para reducir dimensionalidad (reteniendo el 95% de la varianza)
+    # Nota: se usa n_components (con 'n_') y random_state no es un parámetro directo de PCA en scikit-learn, 
+    # pero podemos fijar svd_solver o simplemente usar svd_solver='full' si es necesario.
+    pca = PCA(n_components=0.95, svd_solver='full')
+    
+    # Ajustar solo con train para evitar data leakage y transformar ambos conjuntos
+    X_train_pca = pca.fit_transform(X_train)
+    X_test_pca = pca.transform(X_test)
+    
+    print(f"Estrategia B - Componentes seleccionadas por PCA: {pca.n_components_}")
+    
+    # Entrenar EL MISMO clasificador con los datos reducidos
+    clasificador = RandomForestClassifier(random_state=42)
+    clasificador.fit(X_train_pca, y_train)
+    
+    yp = clasificador.predict(X_test_pca)
+    acc = accuracy_score(y_test, yp)
+    print('Estrategia B (PCA):', acc)
+    return clasificador, acc
+
+def estrategia_C(X_descriptors_train, X_descriptors_test, y_train, y_test):
+    # Entrenar EL MISMO clasificador utilizando las características diseñadas del Ítem 1.2
+    clasificador = RandomForestClassifier(random_state=42)
+    clasificador.fit(X_descriptors_train, y_train)
+    
+    yp = clasificador.predict(X_descriptors_test)
+    acc = accuracy_score(y_test, yp)
+    print('Estrategia C (Características diseñadas):', acc)
+    return clasificador, acc
+
+def start(muestras, matriz_caracteristicas):
+    # 1. Preparar los datos para las Estrategias A y B (Imagen original aplanada)
+    X_imagenes = []
+    y = []
+    for i in muestras:
+        # Usamos la imagen en grises o redimensionada que tengas guardada en tus diccionarios
+        m = i['Grises'] 
+        X_imagenes.append(m.ravel())
+        y.append(i['clase'])
+
+    X_imagenes = np.array(X_imagenes, dtype=np.float32)
+
+    # Codificar las etiquetas de texto a números enteros
+    clases = sorted(set(y))
+    mapeo = {c: i for i, c in enumerate(clases)}
+    yn = np.array([mapeo[c] for c in y], dtype=np.int32)
+
+    # 2. Realizar la partición UNA SOLA VEZ para las Estrategias A y B 
+    # (Garantiza exactamente las mismas muestras de entrenamiento y prueba)
+    xt_A, xtest_A, yt_A, ytest_A = train_test_split(
+        X_imagenes, yn, test_size=0.2, random_state=42
+    )
+
+    print("\n--- EJECUTANDO ESTRATEGIAS ---")
+    estrategia_A(xt_A, xtest_A, yt_A, ytest_A)
+    estrategia_B(xt_A, xtest_A, yt_A, ytest_A)
+
+    # 3. Para la Estrategia C, utilizamos la matriz de características del Ítem 1.2 (`matriz_caracteristicas`)
+    # Usamos exactamente el mismo random_state=42 para mantener la misma partición lógica
+    xt_C, xtest_C, yt_C, ytest_C = train_test_split(
+        matriz_caracteristicas, yn, test_size=0.2, random_state=42
+    )
+    
+    estrategia_C(xt_C, xtest_C, yt_C, ytest_C)
+    
+    return None
+
+# Ejecución principal llamando a start (asegúrate de tener calculada `matriz_caracteristicas` del Ítem 1.2)
+if mostrar_vectores:
+    start(muestras, matriz_caracteristicas)
