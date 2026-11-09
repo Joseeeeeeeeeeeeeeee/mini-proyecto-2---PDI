@@ -24,7 +24,7 @@ REGENERAR_ROIS = False
 MOSTRAR_ROIS_1_2 = False
 MOSTRAR_CANALES_1_2 = False
 MOSTRAR_REALCES_1_2 = False
-MOSTRAR_TEXTURAS_1_2 = True
+MOSTRAR_TEXTURAS_1_2 = False
 MOSTRAR_VARIAS_ROIS_1_2 = False
 
 # Los graficos del 1.4 siempre se guardan; esta variable controla ventanas.
@@ -759,7 +759,7 @@ def mostrar_varias_fotografias_textura():
             )
 
             elementos = [
-                (gris, "Grises", "gray"),
+                (gris, "Grises + Promedio 3x3", "gray"),
                 (
                     mapas["glcm"][:, :, 0, 0],
                     "GLCM 0°",
