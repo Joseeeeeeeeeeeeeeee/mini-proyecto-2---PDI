@@ -28,7 +28,7 @@ MOSTRAR_TEXTURAS_1_2 = False
 MOSTRAR_VARIAS_ROIS_1_2 = False
 
 # Los graficos del 1.4 siempre se guardan; esta variable controla ventanas.
-MOSTRAR_GRAFICOS_1_4 = True
+MOSTRAR_GRAFICOS_1_4 = False
 
 ANGULOS = (0, 45, 90, 135)
 PROPIEDADES_GLCM = ("contrast", "homogeneity", "energy", "correlation")
@@ -940,7 +940,7 @@ def generar_tabla_descriptores(X_textura, nombres):
     tabla.append([
         "TOTAL",
         "Vector de caracteristicas",
-        "Estrategia C",
+        "GLCM + LBP + Gabor + Laws",
         n_total
     ])
 
