@@ -12,7 +12,7 @@ from sklearn.model_selection import train_test_split
 RUTA_BASE = Path(__file__).resolve().parent
 DATASET = RUTA_BASE / "Dataset"
 RUTA_ROIS = RUTA_BASE / "ROIs"
-SALIDA = RUTA_BASE / "Resultados_1_4_ordenados"
+SALIDA = RUTA_BASE / "Resultados_1_4_promedio_3x3"
 
 CLASES = [f"Tela {n}" for n in range(1, 9)]
 TAMANO_ROI = (180, 180)  # ancho, alto
@@ -24,7 +24,7 @@ REGENERAR_ROIS = False
 MOSTRAR_ROIS_1_2 = False
 MOSTRAR_CANALES_1_2 = False
 MOSTRAR_REALCES_1_2 = False
-MOSTRAR_TEXTURAS_1_2 = False
+MOSTRAR_TEXTURAS_1_2 = True
 MOSTRAR_VARIAS_ROIS_1_2 = False
 
 # Los graficos del 1.4 siempre se guardan; esta variable controla ventanas.
@@ -751,6 +751,8 @@ def mostrar_varias_fotografias_textura():
                 cv.IMREAD_GRAYSCALE
             )
 
+            gris = cv.blur(gris, (3, 3))
+
             _, mapas = calcular_descriptores(
                 gris,
                 devolver_mapas=True
@@ -1114,6 +1116,9 @@ def construir_dataset():
                     TAMANO_ROI,
                     interpolation=cv.INTER_AREA
                 )
+
+            # Aplicar filtro promedio 3x3
+            gris = cv.blur(gris, (3, 3)) #------------------------------------------promedio 3x3
 
             X_pixeles.append(
                 gris.ravel().astype(np.float32)
@@ -1625,6 +1630,7 @@ def figura_ejemplos(
     nombres,
     estrategia
 ):
+    
     aciertos = elegir_ejemplos(
         y_real,
         y_pred,
@@ -1662,6 +1668,8 @@ def figura_ejemplos(
                 archivo,
                 cv.IMREAD_GRAYSCALE
             )
+
+            imagen = cv.blur(imagen, (3, 3))
 
             ax.imshow(
                 imagen,
